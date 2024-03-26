@@ -54,7 +54,7 @@ export default function Header() {
         <i>
           <FontAwesomeIcon icon={faShoppingBasket} />
         </i>
-        groco
+        FreshCart
       </a>
       <Navbar active={activeMenu} />
       <div className="icons">

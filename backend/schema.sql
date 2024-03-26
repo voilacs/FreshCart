@@ -37,10 +37,21 @@ CREATE TABLE Category (
 CREATE TABLE Item (
   item_id INTEGER PRIMARY KEY,
   item_name VARCHAR(100),
+  current_price INT DEFAULT 0 CHECK (current_price >= 0),
   category_id INT,
   mrp INT DEFAULT 0 CHECK (mrp >= 0),
   FOREIGN KEY (category_id) REFERENCES Category(category_id)
 );
+
+CREATE TABLE Cart (
+  buyer_id INTEGER,
+  item_id INTEGER,
+  quantity INTEGER,
+  PRIMARY KEY (buyer_id, item_id),
+  FOREIGN KEY (buyer_id) REFERENCES Buyer(buyer_id),
+  FOREIGN KEY (item_id) REFERENCES Item(item_id)
+);
+
 
 CREATE TABLE Review (
   item_id INT,
@@ -55,15 +66,12 @@ CREATE TABLE Review (
 
 CREATE TABLE Transaction_details (
   order_id INTEGER PRIMARY KEY,
-  seller_id INT,
-  warehouse_id INT,  
+  pincode VARCHAR(255),  
   total_cost DECIMAL(10,2),
   order_date DATE,
   mode_payment varchar(30),
   buyer_id INT,
-  foreign key(buyer_id) references Buyer(buyer_id),
-  FOREIGN KEY (seller_id) REFERENCES Seller(seller_id),
-  FOREIGN KEY (warehouse_id) REFERENCES Warehouse(warehouse_id)  
+  foreign key(buyer_id) references Buyer(buyer_id)
 );
 
 CREATE TABLE Order_Details (
@@ -136,31 +144,32 @@ VALUES
 ('Bread & Bakery'),
 ('Cleaning Agents'); 
 
-INSERT INTO Item(item_name, category_id, mrp)
+INSERT INTO Item(item_name, category_id, mrp, current_price)
 VALUES
-('Chips', 1, 25), 
-('Milk', 2, 45),
-('Soft Drink', 3, 50),  
-('Shampoo', 4, 180),
-('Diapers', 5, 350),
-('Dog Food', 6, 625),
-('Detergent', 7, 235),
-('Apples', 8, 185),
-('Bread', 9, 35),
-('Floor Cleaner', 10, 99);
+('Chips', 1, 25, 20), 
+('Milk', 2, 45, 40),
+('Soft Drink', 3, 50, 45),  
+('Shampoo', 4, 180, 150),
+('Diapers', 5, 350, 320),
+('Dog Food', 6, 625, 600),
+('Detergent', 7, 235, 200),
+('Apples', 8, 185, 160),
+('Bread', 9, 35, 30),
+('Floor Cleaner', 10, 99, 90);
 
-INSERT INTO Transaction_details(seller_id, warehouse_id, total_cost, order_date, mode_payment, buyer_id)
+INSERT INTO Transaction_details(pincode, total_cost, order_date, mode_payment, buyer_id)
 VALUES  
-(1, 4, 550, '2023-03-05', 'Credit Card', 1),
-(2, 9, 720, '2023-03-06', 'Net Banking', 2),
-(3, 3, 2000, '2023-03-08', 'Wallet', 3),
-(4, 8, 750, '2023-03-09', 'Debit Card', 5),
-(6, 7, 800, '2023-03-11', 'Credit Card', 4),
-(7, 2, 1800, '2023-03-14',  'UPI', 6),
-(9, 1, 500, '2023-03-15', 'Wallet', 7),
-(5, 5, 1300, '2023-03-17', 'Net Banking', 9), 
-(8, 6, 950, '2023-03-18', 'Debit Card', 8),
-(10, 10, 600, '2023-03-20', 'Credit Card', 10);   
+('411023', 2580, '2023-03-05', 'Credit Card', 1),
+('411001', 840, '2023-03-06', 'Net Banking', 2),
+('411005', 4600, '2023-03-08', 'Wallet', 3),
+('411021', 1605, '2023-03-09', 'Debit Card', 5),
+('411006', 2765, '2023-03-11', 'Credit Card', 4),
+('411012', 3850, '2023-03-14', 'UPI', 6),
+('411022', 70, '2023-03-15', 'Wallet', 7),
+('411018', 2850, '2023-03-17', 'Net Banking', 9),
+('411015', 11850, '2023-03-18', 'Debit Card', 8),
+('411020', 4800, '2023-03-20', 'Credit Card', 10);
+
 
 INSERT INTO Order_Details(order_id, item_id, quantity)  
 VALUES
@@ -177,16 +186,27 @@ VALUES
 
 INSERT INTO Warehouse_Inventory(warehouse_id, item_id, quantity_in_stock)  
 VALUES  
-(1, 1, 50), (1, 2, 45), (1, 3, 36), (1, 4, 77),
-(2, 2, 30), (2, 3, 87), (2, 7, 63), (2, 8, 45),  
-(3, 2, 80), (3, 3, 56), (3, 4, 93), (3, 8, 98),
-(4, 2, 65), (4, 3, 79), (4, 6, 57), (4, 10, 42),  
-(5, 3, 68), (5, 4, 74), (5, 7, 52), (5, 10, 70),   
-(6, 1, 44), (6, 5, 92), (6, 6, 80), (6, 9, 33),
-(7, 1, 103), (7, 3, 73), (7, 8, 88), (7, 9, 64),   
-(8, 2, 94), (8, 3, 75), (8, 6, 66), (8, 10, 55),  
-(9, 2, 59), (9, 4, 89), (9, 7, 31), (9, 9, 82),
-(10, 1, 78), (10, 5, 65), (10, 8, 62), (10, 10, 83);
+(1, 1, 1000), (1, 2, 1000), (1, 3, 1000), (1, 4, 1000), (1, 5, 1000),
+(1, 6, 1000), (1, 7, 1000), (1, 8, 1000), (1, 9, 1000), (1, 10, 1000),
+(2, 1, 100), (2, 2, 100), (2, 3, 100), (2, 4, 100), (2, 5, 100),
+(2, 6, 100), (2, 7, 100), (2, 8, 100), (2, 9, 100), (2, 10, 100),
+(3, 1, 100), (3, 2, 100), (3, 3, 100), (3, 4, 100), (3, 5, 100),
+(3, 6, 100), (3, 7, 100), (3, 8, 100), (3, 9, 100), (3, 10, 100),
+(4, 1, 100), (4, 2, 100), (4, 3, 100), (4, 4, 100), (4, 5, 100),
+(4, 6, 100), (4, 7, 100), (4, 8, 100), (4, 9, 100), (4, 10, 100),
+(5, 1, 100), (5, 2, 100), (5, 3, 100), (5, 4, 100), (5, 5, 100),
+(5, 6, 100), (5, 7, 100), (5, 8, 100), (5, 9, 100), (5, 10, 100),
+(6, 1, 100), (6, 2, 100), (6, 3, 100), (6, 4, 100), (6, 5, 100),
+(6, 6, 100), (6, 7, 100), (6, 8, 100), (6, 9, 100), (6, 10, 100),
+(7, 1, 100), (7, 2, 100), (7, 3, 100), (7, 4, 100), (7, 5, 100),
+(7, 6, 100), (7, 7, 100), (7, 8, 100), (7, 9, 100), (7, 10, 100),
+(8, 1, 100), (8, 2, 100), (8, 3, 100), (8, 4, 100), (8, 5, 100),
+(8, 6, 100), (8, 7, 100), (8, 8, 100), (8, 9, 100), (8, 10, 100),
+(9, 1, 100), (9, 2, 100), (9, 3, 100), (9, 4, 100), (9, 5, 100),
+(9, 6, 100), (9, 7, 100), (9, 8, 100), (9, 9, 100), (9, 10, 100),
+(10, 1, 100), (10, 2, 100), (10, 3, 100), (10, 4, 100), (10, 5, 100),
+(10, 6, 100), (10, 7, 100), (10, 8, 100), (10, 9, 100), (10, 10, 100);
+
 
 INSERT INTO Review VALUES
 (1, 1, 4, 'Good quality chips, nice crunch!', '2024-03-07'),
@@ -211,3 +231,16 @@ INSERT INTO Review VALUES
 (4, 10, 2, 'Shampoo made my hair dry', '2024-03-21'),
 (6, 10, 5, 'My dog loves this food!', '2024-03-21'),
 (9, 10, 3, 'Bread was a little hard', '2024-03-21');
+
+INSERT INTO Cart (buyer_id, item_id, quantity)
+VALUES
+(1, 1, 3),  
+(1, 6, 2),  
+(2, 3, 5),  
+(2, 9, 2),  
+(3, 7, 10), 
+(3, 8, 5),  
+(4, 2, 4),  
+(4, 3, 3),  
+(5, 3, 2),  
+(5, 6, 3);

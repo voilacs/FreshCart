@@ -22,7 +22,7 @@ export default function Footer() {
         <div className="box">
           <FontAwesomeIcon icon={['fas', 'faUser']} />
           <h3>
-            groco
+            FreshCart
             <i>
               <FontAwesomeIcon icon={faShoppingBasket} />
             </i>
