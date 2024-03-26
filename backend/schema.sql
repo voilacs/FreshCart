@@ -10,6 +10,7 @@ CREATE TABLE Buyer (
   payment_mode VARCHAR(30),
   interested_categories VARCHAR(100),
   password VARCHAR(100) NOT NULL, 
+  spent_amount DECIMAL(10,2) DEFAULT 0 CHECK (spent_amount >= 0),
   CONSTRAINT CHK_ValidPhone CHECK (REGEXP('^[0-9]{10}$', buyer_phone) = 1),
   CONSTRAINT CHK_ValidEmail CHECK (buyer_email LIKE '%@%.%') 
 );
@@ -101,7 +102,7 @@ VALUES
 ('Hitesh', '9887412340', 'hitesh@outlook.com', '411021', 2200, 'PhonePe', '1982-06-18','premium', 'Hitesh18'),  
 ('Parul', '8871562963', 'parul@rediff.com', '411012', 2500, 'Credit Card', '1995-01-31','premium', 'Parul31'),
 ('Reena', '9963258741', 'reena@yahoo.in', '411022', 1800, 'Debit Card', '1990-12-12','regular', 'Reena12'),
-('Nisha', '8874591206', 'nisha@gmail.com', '411015', 3000, 'Paytm', '1987-07-10','regular', 'Nisha10'),
+('Nisha', '8874591206', 'nisha@gmail.com', '411005', 3000, 'Paytm', '1987-07-10','regular', 'Nisha10'),
 ('Binita', '6385124790', 'binita@gmail.com', '411018', 3500, 'Netbanking', '1997-08-21','premium', 'Binita21'), 
 ('Ansh', '9987452137', 'ansh@outlook.com', '411020', 2700, 'PhonePe', '1996-04-17','regular', 'Ansh17');
 
@@ -121,13 +122,13 @@ VALUES
 INSERT INTO Warehouse(warehouse_name, warehouse_address)
 VALUES
 ('Primary WH', '201301'),  
-('Warehouse 1', '411027'),
-('Warehouse 2', '411016'),
-('Warehouse 3', '411013'),
+('Warehouse 1', '411005'),
+('Warehouse 2', '411023'),
+('Warehouse 3', '411006'),
 ('Warehouse 4', '411012'),
-('Warehouse 5', '411024'),
+('Warehouse 5', '411020'),
 ('Warehouse 6', '411022'),  
-('Warehouse 7', '411025'),
+('Warehouse 7', '411001'),
 ('Warehouse 8', '411018'),
 ('Warehouse 9', '411021');
 
@@ -167,7 +168,7 @@ VALUES
 ('411012', 3850, '2023-03-14', 'UPI', 6),
 ('411022', 70, '2023-03-15', 'Wallet', 7),
 ('411018', 2850, '2023-03-17', 'Net Banking', 9),
-('411015', 11850, '2023-03-18', 'Debit Card', 8),
+('411005', 11850, '2023-03-18', 'Debit Card', 8),
 ('411020', 4800, '2023-03-20', 'Credit Card', 10);
 
 

@@ -8,16 +8,18 @@ router.get('/', async (req,res)=>{
     res.status(200).json(result);
 })
 
-router.post('/add',async (req,res)=>{
+router.post('/',async (req,res)=>{
     const {buyer_id,item_id,quantity} = req.body;
     const result = await cartHandler.addToCart({buyer_id,item_id,quantity});
     res.status(200).json({result});
 })
 
-router.get('/all',async(req,res)=>{
-    const result = await cartHandler.getAllItems();
-    res.status(200).json(result);
-})
+router.delete('/',async(req,res)=>{
+    const {buyer_id,item_id} = req.body;
+    const result = await cartHandler.deleteFromCart({buyer_id,item_id});
+    res.status(200).json({result});
+}
+)
 router.post('/proceed', async (req, res) => {
     try {
         const body = req.body;
@@ -32,7 +34,8 @@ router.post('/proceed', async (req, res) => {
 
 router.post('/order',async (req,res)=>{
     const {buyer_id} = req.body;
-    
+    const result = await cartHandler.orderFromCart({buyer_id});
+    res.status(200).json({result});
     
 })
 

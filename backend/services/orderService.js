@@ -1,50 +1,38 @@
 const db = require('../utils/db');
 
-const orderItem =  ({ buyer_id, product_id, quantity , order_id}) => {
+const orderItem = async ({ buyer_id, item_id, quantity, order_id }) => {
     try {
-        // Check buyer's pincode and mode of payment
-        const buyer =  db.get('SELECT buyer_address, payment_mode FROM Buyer WHERE buyer_id = ?', [buyer_id]);
+        const buyer = await db.get('SELECT buyer_address, payment_mode FROM Buyer WHERE buyer_id = ?', [buyer_id]);
         const buyerPincode = buyer.buyer_address;
-        const mode_of_payment = buyer.payment_mode;
-        console.log('buyer' , buyer);
-        // Check stock at buyer's pincode
-        let stock =  db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id IN (SELECT warehouse_id FROM Warehouse WHERE warehouse_address = ?)', [product_id, buyerPincode]);
+        const warehouse = await db.get('SELECT * FROM Warehouse WHERE warehouse_address = ?', [buyerPincode]);
+        let stock = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = ?', [item_id, warehouse.warehouse_id]);
         let availableQuantity = stock.quantity_in_stock;
-
+        let d = false;
         if (availableQuantity < quantity) {
-            // Insufficient stock at buyer's pincode, check main warehouse
-            stock =  db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = 1', [product_id]);
-            availableQuantity = stock.quantity_in_stock;
-
-            if (availableQuantity < quantity) {
-                // Insufficient stock at main warehouse as well
-                return 'Insufficient Stock';
-            }
+            d= true;
         }
 
-        // Fetch price of the product
-        const product = db.get('SELECT mrp FROM Item WHERE item_id = ?', [product_id]);
-        const productPrice = product.mrp;
-
-        // Calculate total cost
-        const total_cost = productPrice * quantity;
-        
         // Start a transaction
-        db.run('BEGIN TRANSACTION');
+        await db.run('BEGIN TRANSACTION');
 
         // Place order
-        db.run('INSERT INTO Order_Details (order_id, item_id, quantity) VALUES (?, ?, ?)', [order_id, product_id, quantity]);
-
-        // Reduce inventory
-        db.run('UPDATE Warehouse_Inventory SET quantity_in_stock = quantity_in_stock - ? WHERE item_id = ? AND warehouse_id IN (SELECT warehouse_id FROM Warehouse WHERE warehouse_address = ?)', [quantity, product_id, buyerPincode]);
-
+        await db.run('INSERT INTO Order_Details (order_id, item_id, quantity) VALUES (?, ?, ?)', [order_id, item_id, quantity]);
+        await db.run('UPDATE Warehouse_Inventory SET quantity_in_stock = quantity_in_stock - ? WHERE item_id = ? AND warehouse_id = ?', [Math.min(availableQuantity,quantity), item_id, warehouse.warehouse_id]);
+        if (d) await db.run ('UPDATE Warehouse_Inventory SET quantity_in_stock = quantity_in_stock - ? WHERE item_id = ? AND warehouse_id = 1', [quantity-availableQuantity, item_id]);
+        if (availableQuantity-quantity <20) {
+            const stock = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = 1', [item_id]);
+            const availableQuantityinPrimary = stock.quantity_in_stock;
+            
+            await db.run('UPDATE Warehouse_Inventory SET quantity_in_stock = quantity_in_stock - ? WHERE item_id = ? AND warehouse_id = 1', [Math.min(80,availableQuantityinPrimary), item_id]);
+            await db.run('UPDATE Warehouse_Inventory SET quantity_in_stock = quantity_in_stock + ? WHERE item_id = ? AND warehouse_id = ?', [Math.min(80,availableQuantityinPrimary), item_id, warehouse.warehouse_id]);
+        }
         // Commit transaction
-        db.run('COMMIT');
+        await db.run('COMMIT');
 
         return 'Order placed successfully';
     } catch (error) {
         // Rollback transaction if there's an error
-        db.run('ROLLBACK');
+        await db.run('ROLLBACK');
         console.error('Error in orderItem:', error);
         throw new Error('Failed to process order');
     }

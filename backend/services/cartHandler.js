@@ -10,8 +10,6 @@ const proceedToCheckout = async ({ buyer_id }) => {
         const warehouse = await db.get('SELECT * FROM Warehouse WHERE warehouse_address = ?', [buyer_address]);
         const warehouse_id = warehouse.warehouse_id;
         for (const cartItem of cart) {
-            console.log(cartItem)
-            console.log(warehouse_id)
             const { item_id, quantity } = cartItem;
             const result = await inStock({item_id, warehouse_id ,quantity });
             if (!result) {
@@ -32,16 +30,17 @@ const proceedToCheckout = async ({ buyer_id }) => {
 
 const getCart = async ({ buyer_id }) => {
     const r = await db.all('SELECT * FROM Cart WHERE buyer_id = ?', [buyer_id]);
-    console.log(r);
     return r;
 };
 
 const inStock = async ({ item_id, warehouse_id, quantity }) => {
+    if (quantity >50) return false;
     const stock = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = ?', [item_id, warehouse_id]);
-    console.log(item_id, warehouse_id, quantity, stock)
     const availableQuantity = stock.quantity_in_stock;
     if (availableQuantity < quantity) {
-        return false;
+        const stockinPrimary = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = 1', [item_id]);
+        const availableQuantityinPrimary = stockinPrimary.quantity_in_stock;
+        if (availableQuantityinPrimary + availableQuantity < quantity) return false;
     }
     return true;
 };
@@ -59,6 +58,9 @@ const addToCart = async ({ buyer_id, item_id, quantity }) => {
     }
 };
 
+const deleteFromCart = async ({ buyer_id, item_id }) => {
+    await db.run('DELETE FROM Cart WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
+}
 const orderFromCart = async ({ buyer_id }) => {
     try {
         const cart = await getCart({ buyer_id });
@@ -70,15 +72,16 @@ const orderFromCart = async ({ buyer_id }) => {
             const productPrice = product.current_price;
             total_cost += productPrice * quantity;
         }
-
-        const order_id = await transactionHandler({ buyer_id, total_cost });
-
+        const buyer = await db.get('SELECT * FROM Buyer WHERE buyer_id = ?', [buyer_id]);
+        const order_id = await transactionHandler({ buyer, total_cost });
+        
         for (const cartItem of cart) {
             const { item_id, quantity } = cartItem;
             await orderService.orderItem({ buyer_id, item_id, quantity, order_id });
         }
 
         await db.run('DELETE FROM Cart WHERE buyer_id = ?', [buyer_id]);
+        console.log('Order placed successfully', order_id);
     } catch (error) {
         console.error('Error in orderFromCart:', error);
         throw new Error('Failed to place order from cart');
@@ -90,5 +93,6 @@ module.exports = {
     getCart,
     addToCart,
     proceedToCheckout,
-    getAllItems
+    getAllItems,
+    deleteFromCart
 };
