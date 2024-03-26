@@ -39,4 +39,18 @@ router.post('/order',async (req,res)=>{
     
 })
 
+router.post('/reduce',async (req,res)=>{
+    const {buyer_id,item_id} = req.body;
+    const result = await cartHandler.reduceQuantity({buyer_id,item_id});
+    res.status(200).json({result});
+}
+)
+
+router.post('/increase',async (req,res)=>{
+    const {buyer_id,item_id} = req.body;
+    const result = await cartHandler.increaseQuantity({buyer_id,item_id});
+    res.status(200).json({result});
+}
+)
+
 module.exports = router;

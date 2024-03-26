@@ -33,6 +33,13 @@ const getCart = async ({ buyer_id }) => {
     return r;
 };
 
+const reduceQuantity = async({buyer_id,item_id})=>{
+    await db.run('UPDATE Cart SET quantity = quantity - 1 WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);j
+}
+const increaseQuantity = async({buyer_id,item_id})=>{
+    await db.run('UPDATE Cart SET quantity = quantity + 1 WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
+}
+
 const inStock = async ({ item_id, warehouse_id, quantity }) => {
     if (quantity >50) return false;
     const stock = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = ?', [item_id, warehouse_id]);
@@ -94,5 +101,7 @@ module.exports = {
     addToCart,
     proceedToCheckout,
     getAllItems,
-    deleteFromCart
+    deleteFromCart,
+    reduceQuantity,
+    increaseQuantity
 };
