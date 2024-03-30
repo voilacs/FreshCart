@@ -4,7 +4,6 @@ const loginService = require('../services/loginService');
 
 loginRouter.post('/buyer', async (req, res) => {
     const { email, password } = req.body;
-    console.log("email: ", email, "password: ", password);
     try {
         const token = await loginService.loginBuyer({ email, password});
         if (token === null) {
@@ -18,7 +17,6 @@ loginRouter.post('/buyer', async (req, res) => {
 
 loginRouter.post('/seller', async (req, res) => {
     const { email, password } = req.body;
-    console.log("email: ", email, "password: ", password);
     try {
         const token = await loginService.loginSeller({ email, password});
         if (token === null) {

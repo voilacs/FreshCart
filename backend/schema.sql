@@ -8,12 +8,20 @@ CREATE TABLE Buyer (
   loyalty_points INT,
   membership_type VARCHAR(15),
   payment_mode VARCHAR(30),
-  interested_categories VARCHAR(100),
   password VARCHAR(100) NOT NULL, 
   spent_amount DECIMAL(10,2) DEFAULT 0 CHECK (spent_amount >= 0),
   CONSTRAINT CHK_ValidPhone CHECK (REGEXP('^[0-9]{10}$', buyer_phone) = 1),
   CONSTRAINT CHK_ValidEmail CHECK (buyer_email LIKE '%@%.%') 
 );
+
+CREATE TABLE interested_categories (
+  buyer_id INT,
+  category_id INT,
+  quantity INT,
+  PRIMARY KEY (buyer_id, category_id),
+  FOREIGN KEY (buyer_id) REFERENCES Buyer(buyer_id),
+  FOREIGN KEY (category_id) REFERENCES Category(category_id)
+)
 
 CREATE TABLE Seller (
   seller_id INTEGER PRIMARY KEY,
