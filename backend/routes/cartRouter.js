@@ -4,7 +4,7 @@ const router = Router();
 
 router.get('/', async (req,res)=>{
     const {buyer_id} = req.body;
-    const result = await cartHandler.getCart({buyer_id});
+    const result = await cartHandler.getCartToShow({buyer_id});
     res.status(200).json(result);
 })
 
@@ -34,8 +34,8 @@ router.post('/proceed', async (req, res) => {
 
 router.post('/order',async (req,res)=>{
     const {buyer_id} = req.body;
-    const result = await cartHandler.orderFromCart({buyer_id});
-    res.status(200).json({result});
+    const order_id = await cartHandler.orderFromCart({buyer_id});
+    res.status(200).json({order_id});
     
 })
 

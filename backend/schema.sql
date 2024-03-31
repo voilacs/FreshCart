@@ -14,14 +14,7 @@ CREATE TABLE Buyer (
   CONSTRAINT CHK_ValidEmail CHECK (buyer_email LIKE '%@%.%') 
 );
 
-CREATE TABLE interested_categories (
-  buyer_id INT,
-  category_id INT,
-  quantity INT,
-  PRIMARY KEY (buyer_id, category_id),
-  FOREIGN KEY (buyer_id) REFERENCES Buyer(buyer_id),
-  FOREIGN KEY (category_id) REFERENCES Category(category_id)
-)
+
 
 CREATE TABLE Seller (
   seller_id INTEGER PRIMARY KEY,
@@ -79,7 +72,7 @@ CREATE TABLE Transaction_details (
   total_cost DECIMAL(10,2),
   order_date DATE,
   mode_payment varchar(30),
-  buyer_id INT,
+  buyer_id INT NOT NULL,
   foreign key(buyer_id) references Buyer(buyer_id)
 );
 
@@ -100,6 +93,47 @@ CREATE TABLE Warehouse_Inventory (
   FOREIGN KEY (warehouse_id) REFERENCES Warehouse(warehouse_id),
   FOREIGN KEY (item_id) REFERENCES Item(item_id)
 );
+CREATE TABLE interested_categories (
+  buyer_id INT NOT NULL,
+  category_id INT,
+  quantity INT,
+  PRIMARY KEY (buyer_id, category_id),
+  FOREIGN KEY (buyer_id) REFERENCES Buyer(buyer_id),
+  FOREIGN KEY (category_id) REFERENCES Category(category_id)
+);
+
+CREATE TRIGGER update_buyer_spent_amount
+AFTER INSERT ON Transaction_details 
+BEGIN
+    UPDATE Buyer
+    SET spent_amount = spent_amount + NEW.total_cost
+    WHERE buyer_id = NEW.buyer_id;
+END;
+
+CREATE TRIGGER update_interested_categories
+AFTER INSERT ON Order_Details
+BEGIN
+    -- Update existing rows
+    UPDATE interested_categories
+    SET quantity = quantity + NEW.quantity
+    WHERE buyer_id = (SELECT buyer_id FROM Transaction_details WHERE order_id = NEW.order_id)
+    AND category_id = (SELECT category_id FROM Item WHERE item_id = NEW.item_id);
+    
+    -- Insert new row if no existing row found
+    INSERT INTO interested_categories (buyer_id, category_id, quantity)
+    SELECT 
+        (SELECT buyer_id FROM Transaction_details WHERE order_id = NEW.order_id),
+        (SELECT category_id FROM Item WHERE item_id = NEW.item_id),
+        NEW.quantity
+    WHERE NOT EXISTS (
+        SELECT 1 FROM interested_categories 
+        WHERE buyer_id = (SELECT buyer_id FROM Transaction_details WHERE order_id = NEW.order_id)
+        AND category_id = (SELECT category_id FROM Item WHERE item_id = NEW.item_id)
+    );
+END;
+
+
+
 
 INSERT INTO Buyer(buyer_name, buyer_phone, buyer_email, buyer_address, loyalty_points, payment_mode, buyer_dob, membership_type, password)
 VALUES
@@ -157,7 +191,7 @@ INSERT INTO Item(item_name, category_id, mrp, current_price)
 VALUES
 ('Chips', 1, 25, 20), 
 ('Milk', 2, 45, 40),
-('Soft Drink', 3, 50, 45),  
+('Coca Cola', 3, 50, 45),  
 ('Shampoo', 4, 180, 150),
 ('Diapers', 5, 350, 320),
 ('Dog Food', 6, 625, 600),
@@ -253,3 +287,4 @@ VALUES
 (4, 3, 3),  
 (5, 3, 2),  
 (5, 6, 3);
+

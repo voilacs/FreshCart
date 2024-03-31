@@ -65,6 +65,13 @@ const addToCart = async ({ buyer_id, item_id, quantity }) => {
     }
 };
 
+const getCartToShow  =  async ({buyer_id})=>{
+    const r = await getCart({buyer_id});
+    // get names of items
+    const itemIds =r.map(item => item.item_id);
+    const items = await db.all('SELECT item_name FROM Item WHERE item_id IN (' + itemIds.join(',') + ')');    const itemNames = items.map(item=>item.item_name);
+    return r.map((item,index)=>({...item,item_name:itemNames[index]}));
+}
 const deleteFromCart = async ({ buyer_id, item_id }) => {
     await db.run('DELETE FROM Cart WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
 }
@@ -89,6 +96,8 @@ const orderFromCart = async ({ buyer_id }) => {
 
         await db.run('DELETE FROM Cart WHERE buyer_id = ?', [buyer_id]);
         console.log('Order placed successfully', order_id);
+        const order_summary = {amount : total_cost, order_id};
+        return order_summary; 
     } catch (error) {
         console.error('Error in orderFromCart:', error);
         throw new Error('Failed to place order from cart');
@@ -103,5 +112,6 @@ module.exports = {
     getAllItems,
     deleteFromCart,
     reduceQuantity,
-    increaseQuantity
+    increaseQuantity,
+    getCartToShow
 };
