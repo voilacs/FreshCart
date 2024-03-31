@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/cart',cartRouter)
-app.use("/b/items", itemBuyerRouter);
+app.use("/items", itemBuyerRouter);
 app.use("/login", loginRouter);
 
 app.listen(PORT, () => {

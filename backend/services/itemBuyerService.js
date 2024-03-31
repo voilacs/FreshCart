@@ -1,16 +1,7 @@
 const db = require("../utils/db");
-const getAllItems = () => {
-    return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM Item", (err, rows) => {
-            if (err) {
-                console.error("Database error: ", err);
-                reject(err);
-            } else {
-                console.log(rows);
-                resolve(rows);
-            }
-        });
-    });
+const getAllItems = async() => {
+    const items = await db.all('SELECT * FROM Item');
+    return items;
 }
 
 module.exports = {

@@ -67,7 +67,6 @@ const addToCart = async ({ buyer_id, item_id, quantity }) => {
 
 const getCartToShow  =  async ({buyer_id})=>{
     const r = await getCart({buyer_id});
-    // get names of items
     const itemIds =r.map(item => item.item_id);
     const items = await db.all('SELECT item_name FROM Item WHERE item_id IN (' + itemIds.join(',') + ')');    const itemNames = items.map(item=>item.item_name);
     return r.map((item,index)=>({...item,item_name:itemNames[index]}));

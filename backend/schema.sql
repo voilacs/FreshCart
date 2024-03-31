@@ -14,8 +14,6 @@ CREATE TABLE Buyer (
   CONSTRAINT CHK_ValidEmail CHECK (buyer_email LIKE '%@%.%') 
 );
 
-
-
 CREATE TABLE Seller (
   seller_id INTEGER PRIMARY KEY,
   seller_name VARCHAR(255) NOT NULL, 
