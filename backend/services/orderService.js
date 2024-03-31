@@ -6,7 +6,8 @@ const orderItem = async ({ buyer_id, item_id, quantity, order_id }) => {
         const buyerPincode = buyer.buyer_address;
         const warehouse = await db.get('SELECT * FROM Warehouse WHERE warehouse_address = ?', [buyerPincode]);
         let stock = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = ?', [item_id, warehouse.warehouse_id]);
-        let availableQuantity = stock.quantity_in_stock;
+    
+        let availableQuantity = stock!==undefined ? stock.quantity_in_stock: 0; 
         let d = false;
         if (availableQuantity < quantity) {
             d= true;
@@ -22,8 +23,9 @@ const orderItem = async ({ buyer_id, item_id, quantity, order_id }) => {
         if (availableQuantity-quantity <20) {
             const stock = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = 1', [item_id]);
             const availableQuantityinPrimary = stock.quantity_in_stock;
-            
+            const stock2 = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = ?', [item_id, warehouse.warehouse_id]);
             await db.run('UPDATE Warehouse_Inventory SET quantity_in_stock = quantity_in_stock - ? WHERE item_id = ? AND warehouse_id = 1', [Math.min(80,availableQuantityinPrimary), item_id]);
+            if (stock2===undefined) await db.run('INSERT INTO Warehouse_Inventory (warehouse_id, item_id, quantity_in_stock) VALUES (?, ?, ?)', [warehouse.warehouse_id, item_id, 0]);
             await db.run('UPDATE Warehouse_Inventory SET quantity_in_stock = quantity_in_stock + ? WHERE item_id = ? AND warehouse_id = ?', [Math.min(80,availableQuantityinPrimary), item_id, warehouse.warehouse_id]);
         }
         // Commit transaction

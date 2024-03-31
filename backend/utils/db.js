@@ -7,7 +7,6 @@ class Database {
                 console.error("Database opening error: ", err);
                 return;
             }
-            console.log("Connected to the database.");
         });
     }
 

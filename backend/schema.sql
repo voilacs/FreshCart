@@ -46,7 +46,7 @@ CREATE TABLE Item (
 CREATE TABLE Cart (
   buyer_id INTEGER,
   item_id INTEGER,
-  quantity INTEGER,
+  quantity INTEGER ,
   PRIMARY KEY (buyer_id, item_id),
   FOREIGN KEY (buyer_id) REFERENCES Buyer(buyer_id),
   FOREIGN KEY (item_id) REFERENCES Item(item_id)

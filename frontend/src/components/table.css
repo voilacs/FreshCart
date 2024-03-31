@@ -1,0 +1,5 @@
+.order-table th,
+.order-table td {
+    font-size: 1.2em; /* Increase font size */
+    padding: 10px; /* Add padding */
+}

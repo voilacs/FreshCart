@@ -34,16 +34,19 @@ const getCart = async ({ buyer_id }) => {
 };
 
 const reduceQuantity = async({buyer_id,item_id})=>{
-    await db.run('UPDATE Cart SET quantity = quantity - 1 WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);j
+    await db.run('UPDATE Cart SET quantity = quantity - 1 WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
+    const quantity = await db.get('SELECT quantity FROM Cart WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
+    await db.run('DELETE FROM Cart WHERE quantity = 0');
 }
 const increaseQuantity = async({buyer_id,item_id})=>{
     await db.run('UPDATE Cart SET quantity = quantity + 1 WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
+    const quantity = await db.get('SELECT quantity FROM Cart WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
 }
 
 const inStock = async ({ item_id, warehouse_id, quantity }) => {
     if (quantity >50) return false;
     const stock = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = ?', [item_id, warehouse_id]);
-    const availableQuantity = stock.quantity_in_stock;
+    const availableQuantity = stock ? stock.quantity_in_stock :0;
     if (availableQuantity < quantity) {
         const stockinPrimary = await db.get('SELECT quantity_in_stock FROM Warehouse_Inventory WHERE item_id = ? AND warehouse_id = 1', [item_id]);
         const availableQuantityinPrimary = stockinPrimary.quantity_in_stock;
@@ -68,10 +71,11 @@ const addToCart = async ({ buyer_id, item_id, quantity }) => {
 const getCartToShow  =  async ({buyer_id})=>{
     const r = await getCart({buyer_id});
     const itemIds =r.map(item => item.item_id);
-    const items = await db.all('SELECT item_name FROM Item WHERE item_id IN (' + itemIds.join(',') + ')');    const itemNames = items.map(item=>item.item_name);
-    return r.map((item,index)=>({...item,item_name:itemNames[index]}));
+    const items = await db.all('SELECT item_name, mrp, current_price FROM Item WHERE item_id IN (' + itemIds.join(',') + ')');    const itemNames = items.map(item=>item.item_name);
+    return r.map((item,index)=>({...item,item_name:items[index].item_name,mrp:items[index].mrp,current_price:items[index].current_price}));
 }
 const deleteFromCart = async ({ buyer_id, item_id }) => {
+    
     await db.run('DELETE FROM Cart WHERE buyer_id = ? AND item_id = ?', [buyer_id, item_id]);
 }
 const orderFromCart = async ({ buyer_id }) => {
@@ -87,7 +91,7 @@ const orderFromCart = async ({ buyer_id }) => {
         }
         const buyer = await db.get('SELECT * FROM Buyer WHERE buyer_id = ?', [buyer_id]);
         const order_id = await transactionHandler({ buyer, total_cost });
-        
+         
         for (const cartItem of cart) {
             const { item_id, quantity } = cartItem;
             await orderService.orderItem({ buyer_id, item_id, quantity, order_id });

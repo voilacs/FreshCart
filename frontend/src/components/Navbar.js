@@ -26,13 +26,7 @@ const Navbar = ({ loggedInUser, handleLogout })=> {
                   Home
                 </Link>
               </li>
-              {loggedInUser ? (
-                <li className="nav-item">
-                  <button className="nav-link btn btn-link" onClick={handleLogout}>
-                    Logout ({loggedInUser})
-                  </button>
-                </li>
-              ) : (
+              {loggedInUser ? null : (
                 <li className="nav-item">
                   <Link className="nav-link" to="/login">
                     {' '}
@@ -40,6 +34,31 @@ const Navbar = ({ loggedInUser, handleLogout })=> {
                   </Link>
                 </li>
               )}
+              {loggedInUser ? (
+              <>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/cart">
+                    Cart
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <button className="nav-link btn btn-link" onClick={handleLogout}>
+                    Logout ({loggedInUser})
+                  </button>
+                </li>
+              </>
+            ) : null}
+            
+              <li className = "nav-item">
+                <Link className='nav-link ' to="/warehouses">
+                  Warehouses
+                </Link>
+              </li>
+              <li className = "nav-item">
+                <Link className='nav-link ' to="/buyerData">
+                  BuyerData
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

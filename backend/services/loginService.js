@@ -16,7 +16,6 @@ const loginSeller = ({email, password}) => {
                 console.error("Database error: ", err);
                 reject(err);
             } else {
-                console.log("username: ", email, "password: ", password, "rows: ", rows)
                 if (rows.length == 1) {
                     const {seller_id}  = rows[0]; 
                     resolve(seller_id);
