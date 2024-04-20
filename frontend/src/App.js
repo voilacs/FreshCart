@@ -14,6 +14,7 @@ import OrderScreen from './components/OrderScreen';
 import { getWarehouseData } from './services/warehouseService';
 import Warehouses from './components/Warehouses';
 import BuyerData from './components/BuyerData';
+import ForYou from './components/ForYou';
 function App() {
   const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [items, setItems] = useState([]);
@@ -190,9 +191,10 @@ const handleCartDelete = async ({ item_id }) => {
           <Route path="/login" element={ loggedInUserId ? <Navigate to='/'/> : <LoginForm handleLogin={handleLogin} />} />
           <Route path="/" element={<Home loggedInUserId={loggedInUserId} addToCartHandler={addToCartHandler} items={items} />} />
           <Route path='/cart' element= {!loggedInUserId ? <Navigate to='/'/> : <Cart ptc={ptcFunction}cartItems={cartItems} buyer_id={loggedInUserId} cartIncrementHandler={cartIncrementHandler} cartDecrementHandler={cartDecrementHandler} cartDeleteHandler={handleCartDelete} />} />
-          <Route path = '/order' element = {<OrderScreen buyer_id={loggedInUserId} cartItems = {cartItems} name = {loggedInUser}orderFunction= {orderFunction}/>} />
+          <Route path = '/order' element = { <OrderScreen buyer_id={loggedInUserId} cartItems = {cartItems} name = {loggedInUser}orderFunction= {orderFunction}/>} />
           <Route path='/warehouses' element={<Warehouses  />} />
           <Route path = '/buyerData' element={<BuyerData />} />
+          <Route path = '/foryou' element={<ForYou buyer_id={loggedInUserId} addToCart={addToCartHandler}  />} />
         </Routes>
       </div>
     </Router>

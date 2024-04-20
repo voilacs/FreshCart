@@ -48,7 +48,14 @@ const Navbar = ({ loggedInUser, handleLogout })=> {
                 </li>
               </>
             ) : null}
-            
+            {loggedInUser ?  (
+                <li className="nav-item">
+                  <Link className="nav-link" to="/foryou">
+                    {' '}
+                    For-You
+                  </Link>
+                </li>
+              ) : null}
               <li className = "nav-item">
                 <Link className='nav-link ' to="/warehouses">
                   Warehouses
