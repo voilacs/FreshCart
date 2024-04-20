@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link , Navigate} from 'react-router-dom';
 import loginService from './services/loginService';
 import LoginForm from './components/LoginForm';
+import RegisterForm from './components/RegisterForm';
+import registerService from './services/registerService';
 import Notification from './components/Notification';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Navbar from './components/Navbar';
@@ -19,6 +21,8 @@ function App() {
   const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [items, setItems] = useState([]);
   const [loggedInUser, setLoggedInUser] = useState(null);
+  const [registeredUserId, setRegisteredUserId] = useState(null);
+  const [registeredUser, setRegisteredUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [message, setMessage] = useState(null);
   const [cartItems, setCartItems] = useState([])
@@ -35,6 +39,30 @@ function App() {
       window.location.href = "/";
     } catch (error) {
       setErrorMessage('Invalid username or password');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
+    }
+  };
+  const handleRegistration = async (formData) => {
+    try {
+      const response = await registerService.registerBuyer(formData);
+      if (response) {
+        window.localStorage.setItem('registeredUser', JSON.stringify(response));
+        setRegisteredUserId(response.buyer_id);
+        setRegisteredUser(response.buyer_name);
+        setMessage(`Registration successful, welcome ${response.buyer_name}!`);
+        setTimeout(() => {
+          setMessage(null);
+        }, 5000);
+      } else {
+        setErrorMessage('Registration failed. Please try again.');
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 5000);
+      }
+    } catch (error) {
+      setErrorMessage('Registration failed. Please try again.');
       setTimeout(() => {
         setErrorMessage(null);
       }, 5000);
@@ -194,6 +222,7 @@ const handleCartDelete = async ({ item_id }) => {
           <Route path = '/order' element = { <OrderScreen buyer_id={loggedInUserId} cartItems = {cartItems} name = {loggedInUser}orderFunction= {orderFunction}/>} />
           <Route path='/warehouses' element={<Warehouses  />} />
           <Route path = '/buyerData' element={<BuyerData />} />
+          <Route path="/register" element={<RegisterForm handleRegistration={handleRegistration} />} />
           <Route path = '/foryou' element={<ForYou buyer_id={loggedInUserId} addToCart={addToCartHandler}  />} />
         </Routes>
       </div>
